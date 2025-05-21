@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./media:/app/media
+    environment:
+      - DEBUG=0
+      - SECRET_KEY=your_secret_key_here
+      - ALLOWED_HOSTS=*

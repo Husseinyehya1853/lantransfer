@@ -1,0 +1,95 @@
+{% extends 'files/base.html' %}
+
+{% block title %}إدارة التصنيفات - نظام إدارة الملفات{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Add Category Form -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-plus me-2"></i>إضافة تصنيف جديد</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_name" class="form-label">اسم التصنيف:</label>
+                        <input type="text" name="name" class="form-control {% if form.name.errors %}is-invalid{% endif %}" id="id_name" required>
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label">الوصف (اختياري):</label>
+                        <textarea name="description" class="form-control {% if form.description.errors %}is-invalid{% endif %}" id="id_description" rows="3"></textarea>
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>إضافة تصنيف
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Categories List -->
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-tags me-2"></i>التصنيفات الحالية</h5>
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-tachometer-alt me-1"></i>لوحة التحكم
+                </a>
+            </div>
+            <div class="card-body">
+                {% if categories %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>الوصف</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category in categories %}
+                                    <tr>
+                                        <td>{{ category.name }}</td>
+                                        <td>{{ category.description|default:"-" }}</td>
+                                        <td>
+                                            <a href="{% url 'delete_category' category.id %}" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle me-2"></i>لا توجد تصنيفات حالياً. قم بإضافة تصنيف جديد.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

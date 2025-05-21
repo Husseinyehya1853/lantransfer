@@ -1,0 +1,37 @@
+{% extends 'files/base.html' %}
+
+{% block title %}تأكيد حذف التصنيف - نظام إدارة الملفات{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white text-center">
+                <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>تأكيد حذف التصنيف</h4>
+            </div>
+            <div class="card-body p-4 text-center">
+                <p class="lead">هل أنت متأكد من حذف التصنيف التالي؟</p>
+                <p><strong>{{ category.name }}</strong></p>
+                {% if category.description %}
+                    <p class="text-muted">{{ category.description }}</p>
+                {% endif %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>ملاحظة: سيتم إزالة هذا التصنيف من جميع الملفات المرتبطة به.
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-2 mt-4">
+                        <a href="{% url 'manage_categories' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>إلغاء
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i>نعم، احذف التصنيف
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

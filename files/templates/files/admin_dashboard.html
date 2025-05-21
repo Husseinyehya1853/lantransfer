@@ -1,0 +1,143 @@
+{% extends 'files/base.html' %}
+
+{% block title %}لوحة التحكم - نظام إدارة الملفات{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>لوحة التحكم</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-info text-white mb-3">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="card-title">إجمالي الملفات</h5>
+                                    <h2 class="mb-0">{{ total_files }}</h2>
+                                </div>
+                                <i class="fas fa-file-alt fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-success text-white mb-3">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="card-title">إجمالي التحميلات</h5>
+                                    <h2 class="mb-0">{{ total_downloads }}</h2>
+                                </div>
+                                <i class="fas fa-download fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-upload me-2"></i>آخر الملفات المرفوعة</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_uploads %}
+                    <div class="list-group">
+                        {% for file in recent_uploads %}
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ file.title }}</h6>
+                                    <small>{{ file.upload_date|date:"Y-m-d H:i" }}</small>
+                                </div>
+                                <p class="mb-1">بواسطة: {{ file.uploaded_by.username }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small>{{ file.category.name|default:"بدون تصنيف" }}</small>
+                                    <div>
+                                        <a href="{% url 'download_file' file.id %}" class="btn btn-sm btn-success">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        <a href="{% url 'delete_file' file.id %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'admin_files' %}" class="btn btn-outline-primary btn-sm">عرض كل الملفات</a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">لا توجد ملفات مرفوعة حتى الآن.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-download me-2"></i>آخر عمليات التحميل</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_downloads %}
+                    <div class="list-group">
+                        {% for log in recent_downloads %}
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ log.file.title }}</h6>
+                                    <small>{{ log.download_date|date:"Y-m-d H:i" }}</small>
+                                </div>
+                                <p class="mb-1">تم التحميل بواسطة: {{ log.downloaded_by.username|default:"زائر" }}</p>
+                                <small>IP: {{ log.ip_address }}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'admin_logs' %}" class="btn btn-outline-primary btn-sm">عرض كل السجلات</a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">لا توجد عمليات تحميل حتى الآن.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>إدارة النظام</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'admin_files' %}" class="btn btn-outline-primary btn-lg w-100">
+                            <i class="fas fa-file-alt mb-2 d-block" style="font-size: 2rem;"></i>
+                            إدارة الملفات
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'admin_logs' %}" class="btn btn-outline-primary btn-lg w-100">
+                            <i class="fas fa-history mb-2 d-block" style="font-size: 2rem;"></i>
+                            سجلات التحميل
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'manage_categories' %}" class="btn btn-outline-primary btn-lg w-100">
+                            <i class="fas fa-tags mb-2 d-block" style="font-size: 2rem;"></i>
+                            إدارة التصنيفات
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

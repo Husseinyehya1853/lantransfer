@@ -1,0 +1,32 @@
+{% extends 'files/base.html' %}
+
+{% block title %}تأكيد الحذف - نظام إدارة الملفات{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white text-center">
+                <h4 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>تأكيد الحذف</h4>
+            </div>
+            <div class="card-body p-4 text-center">
+                <p class="lead">هل أنت متأكد من حذف الملف التالي؟</p>
+                <p><strong>{{ file.title }}</strong></p>
+                <p class="text-muted">هذا الإجراء لا يمكن التراجع عنه.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-2 mt-4">
+                        <a href="{% if request.user.is_staff %}{% url 'admin_files' %}{% else %}{% url 'my_files' %}{% endif %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>إلغاء
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i>نعم، احذف الملف
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

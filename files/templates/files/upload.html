@@ -1,0 +1,234 @@
+{% extends 'files/base.html' %}
+
+{% block title %}رفع ملف - نظام إدارة الملفات{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-upload me-2"></i>رفع ملف جديد</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" id="fileUploadForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_title" class="form-label">عنوان الملف:</label>
+                        <input type="text" name="title" class="form-control {% if form.title.errors %}is-invalid{% endif %}" id="id_title" required>
+                        {% if form.title.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.title.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label">وصف الملف (اختياري):</label>
+                        <textarea name="description" class="form-control {% if form.description.errors %}is-invalid{% endif %}" id="id_description" rows="3"></textarea>
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_category" class="form-label">التصنيف (اختياري):</label>
+                        <select name="category" class="form-select {% if form.category.errors %}is-invalid{% endif %}" id="id_category">
+                            <option value="">-- اختر تصنيف --</option>
+                            {% for category in form.fields.category.queryset %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.category.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.category.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_access_type" class="form-label">نوع الوصول:</label>
+                        <select name="access_type" class="form-select {% if form.access_type.errors %}is-invalid{% endif %}" id="id_access_type">
+                            {% for value, text in form.fields.access_type.choices %}
+                                <option value="{{ value }}">{{ text }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.access_type.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.access_type.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text text-muted">
+                            <small>عام: متاح للجميع، خاص: متاح للمستخدمين المسجلين فقط</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_file" class="form-label">اختر الملف:</label>
+                        <input type="file" name="file" class="form-control {% if form.file.errors %}is-invalid{% endif %}" id="id_file" required>
+                        {% if form.file.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.file.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text text-muted mt-1">
+                            <small>الحد الأقصى لحجم الملف: 5 جيجابايت</small>
+                        </div>
+                    </div>
+                    
+                    <!-- إضافة شريط التقدم -->
+                    <div class="progress mb-3 d-none" id="upload-progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" id="upload-progress-bar"></div>
+                    </div>
+                    <div class="mb-3 d-none" id="upload-status">
+                        <span id="upload-percentage">0%</span> - <span id="upload-speed">0 KB/s</span> - <span id="upload-remaining">جاري الحساب...</span>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary" id="upload-button"><i class="fas fa-upload me-2"></i>رفع الملف</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // تفعيل رفع الملفات المحسن للملفات الكبيرة
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('fileUploadForm');
+        const fileInput = document.getElementById('id_file');
+        const progressBar = document.getElementById('upload-progress');
+        const progressBarInner = document.getElementById('upload-progress-bar');
+        const uploadStatus = document.getElementById('upload-status');
+        const uploadPercentage = document.getElementById('upload-percentage');
+        const uploadSpeed = document.getElementById('upload-speed');
+        const uploadRemaining = document.getElementById('upload-remaining');
+        const uploadButton = document.getElementById('upload-button');
+        
+        if (form && fileInput) {
+            form.addEventListener('submit', function(e) {
+                // التحقق من صحة النموذج
+                const titleInput = document.getElementById('id_title');
+                
+                // التحقق من اختيار ملف
+                if (fileInput.files.length === 0) {
+                    e.preventDefault();
+                    alert('الرجاء اختيار ملف للرفع');
+                    return false;
+                }
+                
+                // التحقق من حجم الملف (الحد الأقصى 5 جيجابايت)
+                const maxSize = 5 * 1024 * 1024 * 1024; // 5GB بالبايت
+                if (fileInput.files[0].size > maxSize) {
+                    e.preventDefault();
+                    alert('حجم الملف يتجاوز الحد الأقصى (5 جيجابايت)');
+                    return false;
+                }
+                
+                // التحقق من إدخال عنوان
+                if (titleInput.value.trim() === '') {
+                    e.preventDefault();
+                    alert('الرجاء إدخال عنوان للملف');
+                    return false;
+                }
+                
+                // إذا كان الملف كبيرًا، استخدم AJAX للرفع مع شريط التقدم
+                if (fileInput.files[0].size > 10 * 1024 * 1024) { // أكبر من 10 ميجابايت
+                    e.preventDefault();
+                    
+                    // إظهار شريط التقدم
+                    progressBar.classList.remove('d-none');
+                    uploadStatus.classList.remove('d-none');
+                    uploadButton.disabled = true;
+                    
+                    // إنشاء كائن FormData
+                    const formData = new FormData(form);
+                    const xhr = new XMLHttpRequest();
+                    
+                    // متابعة تقدم الرفع
+                    xhr.upload.addEventListener('progress', function(e) {
+                        if (e.lengthComputable) {
+                            const percentComplete = Math.round((e.loaded / e.total) * 100);
+                            progressBarInner.style.width = percentComplete + '%';
+                            uploadPercentage.textContent = percentComplete + '%';
+                            
+                            // حساب سرعة الرفع
+                            const elapsed = (Date.now() - window.uploadStartTime) / 1000; // بالثواني
+                            const bytesPerSecond = e.loaded / elapsed;
+                            const kbps = Math.round(bytesPerSecond / 1024);
+                            uploadSpeed.textContent = kbps + ' KB/s';
+                            
+                            // حساب الوقت المتبقي
+                            const remaining = (e.total - e.loaded) / bytesPerSecond;
+                            const remainingMinutes = Math.floor(remaining / 60);
+                            const remainingSeconds = Math.round(remaining % 60);
+                            uploadRemaining.textContent = remainingMinutes + ' دقيقة و ' + remainingSeconds + ' ثانية';
+                        }
+                    });
+                    
+                    // عند اكتمال الرفع
+                    xhr.addEventListener('load', function() {
+                        if (xhr.status === 200) {
+                            try {
+                                const response = JSON.parse(xhr.responseText);
+                                if (response.status === 'success') {
+                                    // تحويل المستخدم إلى الصفحة الرئيسية
+                                    window.location.href = '/';
+                                } else {
+                                    alert('حدث خطأ أثناء رفع الملف');
+                                    uploadButton.disabled = false;
+                                }
+                            } catch (e) {
+                                // إذا لم تكن الاستجابة بتنسيق JSON، فقد تكون صفحة HTML
+                                window.location.href = '/';
+                            }
+                        } else {
+                            alert('حدث خطأ أثناء رفع الملف: ' + xhr.status);
+                            uploadButton.disabled = false;
+                            progressBar.classList.add('d-none');
+                            uploadStatus.classList.add('d-none');
+                        }
+                    });
+                    
+                    // في حالة حدوث خطأ
+                    xhr.addEventListener('error', function() {
+                        alert('حدث خطأ في الاتصال أثناء رفع الملف');
+                        uploadButton.disabled = false;
+                        progressBar.classList.add('d-none');
+                        uploadStatus.classList.add('d-none');
+                    });
+                    
+                    // تعيين وقت بدء الرفع
+                    window.uploadStartTime = Date.now();
+                    
+                    // إرسال الطلب
+                    xhr.open('POST', form.action || window.location.href, true);
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                    xhr.send(formData);
+                    
+                    return false;
+                }
+                
+                // للملفات الصغيرة، استخدم الطريقة العادية مع مؤشر التحميل
+                showLoadingIndicator();
+                return true;
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'files/base.html' %}
+
+{% block title %}ملفاتي - نظام إدارة الملفات{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="fas fa-folder me-2"></i>ملفاتي</h4>
+        <a href="{% url 'upload_file' %}" class="btn btn-light btn-sm">
+            <i class="fas fa-upload me-1"></i>رفع ملف جديد
+        </a>
+    </div>
+    <div class="card-body">
+        {% if files %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>العنوان</th>
+                            <th>التصنيف</th>
+                            <th>الحجم</th>
+                            <th>تاريخ الرفع</th>
+                            <th>نوع الوصول</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for file in files %}
+                            <tr>
+                                <td>{{ file.title }}</td>
+                                <td>{{ file.category.name|default:"بدون تصنيف" }}</td>
+                                <td>
+                                    {% with size=file.file_size %}
+                                        {% if size < 1024 %}
+                                            {{ size }} بايت
+                                        {% elif size < 1048576 %}
+                                            {{ size|divisibleby:1024|floatformat:2 }} كيلوبايت
+                                        {% elif size < 1073741824 %}
+                                            {{ size|divisibleby:1048576|floatformat:2 }} ميجابايت
+                                        {% else %}
+                                            {{ size|divisibleby:1073741824|floatformat:2 }} جيجابايت
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>{{ file.upload_date|date:"Y-m-d H:i" }}</td>
+                                <td>
+                                    {% if file.access_type == 'public' %}
+                                        <span class="badge bg-success">عام</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">خاص</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'download_file' file.id %}" class="btn btn-sm btn-primary download-btn" data-size="{{ file.file_size }}">
+                                        <i class="fas fa-download"></i> تنزيل
+                                    </a>
+                                    <a href="{% url 'delete_file' file.id %}" class="btn btn-sm btn-danger delete-confirm">
+                                        <i class="fas fa-trash"></i> حذف
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle me-2"></i>لم تقم برفع أي ملفات بعد.
+                <a href="{% url 'upload_file' %}" class="alert-link">قم برفع ملف جديد</a>.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

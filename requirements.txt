@@ -1,0 +1,24 @@
+# LAN Transfer - File Management System Requirements
+# Developed by Hussein Yehya
+
+# Core Django
+Django>=5.2.0,<6.0.0
+
+# Image Processing
+Pillow>=10.0.0,<11.0.0
+
+# Environment Variables
+python-dotenv>=1.0.0,<2.0.0
+
+# Security
+django-cors-headers>=4.3.0,<5.0.0
+
+# Improved File Handling
+django-cleanup>=8.0.0,<9.0.0
+
+# Development Tools
+django-debug-toolbar>=4.2.0,<5.0.0
+
+# Production Server
+gunicorn>=21.2.0,<22.0.0
+whitenoise>=6.5.0,<7.0.0

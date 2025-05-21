@@ -1,0 +1,161 @@
+{% extends 'files/base.html' %}
+
+{% block title %}الرئيسية - نظام إدارة الملفات{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Sidebar with filters -->
+    <div class="col-md-3 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-filter me-2"></i>تصفية الملفات</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'home' %}">
+                    <div class="mb-3">
+                        <label for="search" class="form-label">بحث:</label>
+                        <input type="text" class="form-control" id="search" name="q" value="{{ query|default:'' }}" placeholder="ابحث عن ملف...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">التصنيف:</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">جميع التصنيفات</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i>بحث</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main content with file list -->
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>الملفات المتاحة</h5>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'upload_file' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-upload me-1"></i>رفع ملف جديد
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>العنوان</th>
+                                    <th>التصنيف</th>
+                                    <th>الحجم</th>
+                                    <th>تاريخ الرفع</th>
+                                    <th>بواسطة</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for file in page_obj %}
+                                    <tr>
+                                        <td>{{ file.title }}</td>
+                                        <td>{{ file.category.name|default:"بدون تصنيف" }}</td>
+                                        <td>
+                                            {% with size=file.file_size %}
+                                                {% if size < 1024 %}
+                                                    {{ size }} بايت
+                                                {% elif size < 1048576 %}
+                                                    {{ size|divisibleby:1024|floatformat:2 }} كيلوبايت
+                                                {% elif size < 1073741824 %}
+                                                    {{ size|divisibleby:1048576|floatformat:2 }} ميجابايت
+                                                {% else %}
+                                                    {{ size|divisibleby:1073741824|floatformat:2 }} جيجابايت
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                        <td>{{ file.upload_date|date:"Y-m-d H:i" }}</td>
+                                        <td>{{ file.uploaded_by.username }}</td>
+                                        <td>
+                                            <a href="{% url 'download_file' file.id %}" class="btn btn-sm btn-primary download-btn" data-size="{{ file.file_size }}">
+                                                <i class="fas fa-download"></i> تنزيل
+                                            </a>
+                                            {% if user.is_authenticated and user == file.uploaded_by or user.is_staff %}
+                                                <a href="{% url 'delete_file' file.id %}" class="btn btn-sm btn-danger delete-confirm">
+                                                    <i class="fas fa-trash"></i> حذف
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">&laquo; الأول</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">السابق</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#">&laquo; الأول</a>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#">السابق</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for i in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == i %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ i }}</span>
+                                        </li>
+                                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">{{ i }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">التالي</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}">الأخير &raquo;</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#">التالي</a>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#">الأخير &raquo;</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle me-2"></i>لا توجد ملفات متاحة حالياً.
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'upload_file' %}" class="alert-link">قم برفع ملف جديد</a>.
+                        {% else %}
+                            <a href="{% url 'login' %}" class="alert-link">سجل دخول</a> لرفع الملفات.
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
