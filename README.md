@@ -6,11 +6,11 @@
 ## نظرة عامة
 
 LAN Transfer هو نظام لإدارة ونقل الملفات عبر الشبكة المحلية (LAN) مع دعم لإدارة المستخدمين والصلاحيات. يتيح النظام رفع وتنزيل الملفات بسهولة بين الأجهزة المتصلة بنفس الشبكة المحلية.
-افتحه من هنا https://lantransfer.hexaloom.site/
-الأدمن التجريبي
-Username: hopy
-Email address: hopy@example.com
-Password: okmnji@49861
+**افتحه من هنا https://lantransfer.hexaloom.site/**
+**الأدمن التجريبي**
+- Username: hopy
+- Email address: hopy@example.com
+- Password: okmnji@49861
 ## المميزات
 
 - دعم رفع الملفات الكبيرة حتى 5 جيجابايت
